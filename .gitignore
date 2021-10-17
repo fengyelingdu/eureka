@@ -40,7 +40,7 @@ Thumbs.db
 ################
 .gradle
 .m2
-
+gradle/*
 # Build output directies
 /target
 */target
