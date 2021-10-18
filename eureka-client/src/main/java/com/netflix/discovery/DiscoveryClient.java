@@ -120,7 +120,6 @@ public class DiscoveryClient implements EurekaClient {
     /**
      * @deprecated here for legacy support as the client config has moved to be an instance variable
      */
-    @Deprecated
     private static EurekaClientConfig staticClientConfig;
 
     // Timers
