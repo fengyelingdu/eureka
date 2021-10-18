@@ -46,6 +46,8 @@ public class ExampleEurekaClient {
     private static ApplicationInfoManager applicationInfoManager;
     private static EurekaClient eurekaClient;
 
+
+
     private static synchronized ApplicationInfoManager initializeApplicationInfoManager(EurekaInstanceConfig instanceConfig) {
         if (applicationInfoManager == null) {
             InstanceInfo instanceInfo = new EurekaConfigBasedInstanceInfoProvider(instanceConfig).get();

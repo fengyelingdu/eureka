@@ -408,9 +408,14 @@ public class DiscoveryClient implements EurekaClient {
             throw new RuntimeException("Failed to initialize DiscoveryClient!", e);
         }
 
+
+        //我个人期望看到的代码是，在这个eureka client初始化的过程中
+        //就在这里，先将自己注册到注册中心去，或者是先在这里抓去注册表，都可以
         if (clientConfig.shouldFetchRegistry() && !fetchRegistry(false)) {
             fetchRegistryFromBackup();
         }
+
+        //起码说，这个代码应该在这里来发起一个服务的注册
 
         // call and execute the pre registration handler before all background tasks (inc registration) is started
         if (this.preRegistrationHandler != null) {
@@ -1275,8 +1280,8 @@ public class DiscoveryClient implements EurekaClient {
                     instanceInfo,
                     clientConfig.getInstanceInfoReplicationIntervalSeconds(),
                     2); // burstSize
-
             statusChangeListener = new ApplicationInfoManager.StatusChangeListener() {
+
                 @Override
                 public String getId() {
                     return "statusChangeListener";
