@@ -930,8 +930,8 @@ public class DiscoveryClient implements EurekaClient {
 
             if (clientConfig.shouldDisableDelta()
                     || (!Strings.isNullOrEmpty(clientConfig.getRegistryRefreshSingleVipAddress()))
-                    || forceFullRegistryFetch
-                    || (applications == null)
+                    || forceFullRegistryFetch//这个是false
+                    || (applications == null)//因为之前都已经抓取到一次了，所以这个本地是有applications
                     || (applications.getRegisteredApplications().size() == 0)
                     || (applications.getVersion() == -1)) //Client application does not have latest library supporting delta
             {
@@ -944,7 +944,7 @@ public class DiscoveryClient implements EurekaClient {
                 logger.info("Application version is -1: {}", (applications.getVersion() == -1));
                 getAndStoreFullRegistry();
             } else {
-                getAndUpdateDelta(applications);
+                getAndUpdateDelta(applications);//增量抓取
             }
             applications.setAppsHashCode(applications.getReconcileHashCode());
             logTotalInstances();
@@ -1070,7 +1070,7 @@ public class DiscoveryClient implements EurekaClient {
         if (delta == null) {
             logger.warn("The server does not allow the delta revision to be applied because it is not safe. "
                     + "Hence got the full registry.");
-            getAndStoreFullRegistry();
+            getAndStoreFullRegistry();//如果是null的话，就会拿全量注册表
         } else if (fetchRegistryGeneration.compareAndSet(currentUpdateGeneration, currentUpdateGeneration + 1)) {
             logger.debug("Got delta update with apps hashcode {}", delta.getAppsHashCode());
             String reconcileHashCode = "";
