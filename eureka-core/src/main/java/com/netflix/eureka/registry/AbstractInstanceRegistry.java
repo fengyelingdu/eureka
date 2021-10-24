@@ -634,6 +634,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
 
         //不能一次性摘除过多的服务实例
         //假设现在一共是20个服务实例，现在有个6服务实例不可用了，一次性可以摘除的服务实例
+        //第二次：17 -> 3 -> toEvict =3，本次可以摘除的就是3个实例，只剩下14个服务实例了
 
         //registrySize=20
         int registrySize = (int) getLocalRegistrySize();
