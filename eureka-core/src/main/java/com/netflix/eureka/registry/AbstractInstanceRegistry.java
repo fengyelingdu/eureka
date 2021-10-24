@@ -119,7 +119,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
         this.recentCanceledQueue = new CircularQueue<Pair<Long, String>>(1000);
         this.recentRegisteredQueue = new CircularQueue<Pair<Long, String>>(1000);
 
-        this.renewsLastMin = new MeasuredRate(1000 * 60 * 1);
+        this.renewsLastMin = new MeasuredRate(1000 * 60 * 1); //1分钟
 
         this.deltaRetentionTimer.schedule(getDeltaRetentionTask(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs(),
@@ -223,6 +223,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
                         // Since the client wants to cancel it, reduce the threshold
                         // (1
                         // for 30 seconds, 2 for a minute)
+                        //注册的时候，每分钟期望心跳次数+2，因为新增一个服务实例，每分钟就该多2次心跳
                         this.expectedNumberOfRenewsPerMin = this.expectedNumberOfRenewsPerMin + 2;
                         this.numberOfRenewsPerMinThreshold =
                                 (int) (this.expectedNumberOfRenewsPerMin * serverConfig.getRenewalPercentThreshold());
@@ -367,6 +368,7 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
      */
     public boolean renew(String appName, String id, boolean isReplication) {
         RENEW.increment(isReplication);
+
         Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
         Lease<InstanceInfo> leaseToRenew = null;
         if (gMap != null) {
@@ -400,6 +402,9 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
                     instanceInfo.setStatusWithoutDirty(overriddenInstanceStatus);
                 }
             }
+
+            //每次心跳的时候后，都会把这个东西+1
+            //记录每一分钟实际的心跳次数
             renewsLastMin.increment();
             leaseToRenew.renew();
             return true;
@@ -665,6 +670,18 @@ public abstract class AbstractInstanceRegistry implements InstanceRegistry {
                 String id = lease.getHolder().getId();
                 EXPIRED.increment();
                 logger.warn("DS: Registry: expired lease for {}/{}", appName, id);
+
+
+//*******************添加这些代码，不然是bug********************
+//                synchronized (lock) {
+//                    if (this.expectedNumberOfRenewsPerMin > 0) {
+//                        // Since the client wants to cancel it, reduce the threshold (1 for 30 seconds, 2 for a minute)
+//                        //服务下线的时候，直接每分钟期望的心跳次数-2
+//                        this.expectedNumberOfRenewsPerMin = this.expectedNumberOfRenewsPerMin - 2;
+//                        this.numberOfRenewsPerMinThreshold =
+//                                (int) (this.expectedNumberOfRenewsPerMin * serverConfig.getRenewalPercentThreshold());
+//                    }
+//                }
 
                 //对这个随机挑选出来的服务实例，调用internalCancel方法摘除
                 internalCancel(appName, id, false);
